@@ -89,10 +89,10 @@ for r in range(int(rows/frows)-1):
         quantize(DCTmat,Q)
         frame1D=zigzag(frame,frows)
         encoded=run_length(frame1D)
-        finalvec.append(encoded)
+        finalvec.extend(encoded)
 
 finalvec=np.asarray(finalvec)
-
+finalvec.shape
 huffman = Huffman_encoding()
 encoded_img = huffman.compress(finalvec)  #encoded message
 
