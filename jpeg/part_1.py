@@ -4,18 +4,20 @@ from PIL import Image
 import numpy as np
 
 # call the image and convert it into gray scale
-oimage = Image.open("img.bmp").convert('LA')
-oimage.save('gimg.png')
+# oimage = Image.open("img.bmp").convert('LA')
+# oimage.save('gimg.png')
 
 gim = plt.imread('gimg.png')
 gray = rgb2gray(gim)
 
 plt.imshow(gray, cmap=plt.get_cmap('gray'), vmin=0, vmax=1)
-
 frows,fcols=8,8 #intialize the frame size
 rows,cols=gray.shape
-gray=fixdims(gim,frows,fcols) #fix image dimensions to make it multiple of the frame rows and columns
+gray.shape
+gray=fixdims(gray,frows,fcols) #fix image dimensions to make it multiple of the frame rows and columns
+
 # quantiation tables
+
 
 Q1=[[1,1,1,1,1,2,2,4],
     [1,1,1,1,1,2,2,4],
@@ -79,7 +81,7 @@ Q6= [
 Q=Q1
 frame1D=np.zeros(frows*fcols)
 finalvec=[]
-
+print(gray.shape)
 for r in range(int(rows/frows)-1):
     for c in range(int(cols/fcols)-1):
         frame=gray[r:r+frows,c:c+fcols]
