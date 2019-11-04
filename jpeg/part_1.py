@@ -15,7 +15,8 @@ frows,fcols=8,8 #intialize the frame size
 rows,cols=gray.shape
 gray.shape
 gray=fixdims(gray,frows,fcols) #fix image dimensions to make it multiple of the frame rows and columns
-
+osize=gray.size * gray.itemsize
+print(osize)
 # quantiation tables
 
 
@@ -94,23 +95,19 @@ for r in range(int(rows/frows)-1):
 finalvec=np.asarray(finalvec)
 finalvec.shape
 huffman = Huffman_encoding()
-encoded_img = huffman.compress(finalvec)  #encoded message
+encoded_img = huffman.compress(finalvec)  #encoded message as a sting of zeros and ones
+csize=len(encoded_img)
+print("compression efficiency is ",csize/osize)
 
-#     # return x,huffman
-
-# def decodecode(finalvec, huffman):
-#     recimage=np.zeros((rows,cols))# intialize recovered image
-#     decoded = huffman.decode_text(finalvec)
-#     decoded=reverse_run_length(decoded)# expand the runlength code
-    
-#     for r in range(int(rows/frows)-1):
-#         for c in range(int(cols/fcols)-1):
-#             DCTmat1D=decoded[0:0+frows*fcols]#! still need modification
-#             DCTmat=invzig(frame1D)
-#             DCTmat=dequantize(DCTmat,Q)
-#             frame=IDCT(DCTmat)
-#             recimage[r:r+frows,c:c+fcols]=frame
-#     return recimage
-
-
-# quality=error(gray,recimage)
+recimage=np.zeros((rows,cols))# intialize recovered image
+decoded = huffman.decode_text(encoded_img)
+decoded=reverse_run_length(decoded)# expand the runlength code
+print (decoded)
+for r in range(int(rows/frows)-1):
+    for c in range(int(cols/fcols)-1):
+        DCTmat1D=decoded[0:0+frows*fcols]
+        del decoded[0:0+frows*fcols]
+        DCTmat=invzig(frame1D)
+        DCTmat=dequantize(DCTmat,Q)
+        frame=IDCT(np.asarray(DCTmat))
+        recimage[r:r+frows,c:c+fcols]=frame
