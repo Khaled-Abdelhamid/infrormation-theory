@@ -14,8 +14,7 @@ plt.imshow(gray, cmap=plt.get_cmap('gray'), vmin=0, vmax=1)
 
 frows,fcols=8,8 #intialize the frame size
 rows,cols=gray.shape
-gim=fixdims(gim,frows,fcols) #fix image dimensions to make it multiple of the frame rows and columns
-
+gray=fixdims(gim,frows,fcols) #fix image dimensions to make it multiple of the frame rows and columns
 # quantiation tables
 
 Q1=[[1,1,1,1,1,2,2,4],
