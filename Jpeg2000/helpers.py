@@ -238,10 +238,13 @@ class node:
 
 class Huffman_encoding:
     def __init__(self):
-        self.heap = []
-        self.codes = {}
-        self.reverse_mapping = {}
+        self.heap = []    # for sorting 
+        self.codes = {}  # the mapping from symbol to code
+        self.reverse_mapping = {} # the mapping from code to symbol
 
+
+
+    # this counts frequency of each symbol
     def make_freq_dict(self, message):
         frequency = {}
         for symbol in message:
@@ -253,12 +256,14 @@ class Huffman_encoding:
         return frequency
 
 
+    # builds the heap 
     def build_heap(self, frequency):
         for key in frequency:
             n = node(key, -frequency[key])
             heapq.heappush(self.heap, n)
 
-    def merge_nodes(self):
+    # merge the nodes of the least 2 probablistic symbols
+    def merge_nodes(self): 
         while(len(self.heap)> 1):
             node_1 = heapq.heappop(self.heap)
             node_2 = heapq.heappop(self.heap)
@@ -270,6 +275,7 @@ class Huffman_encoding:
             heapq.heappush(self.heap, merged_node)
 
 
+    # builds the code of each symbol
     def helper_function(self, root, code):
         if (root == None):
             return
@@ -282,7 +288,7 @@ class Huffman_encoding:
         self.helper_function(root.left, code + "0")
         self.helper_function(root.right, code + "1")
 
-    
+    # getting the code
     def make_codes(self):
         root = heapq.heappop(self.heap)
         code = ""
@@ -290,6 +296,7 @@ class Huffman_encoding:
 
 
 
+    # getting the encoded message
     def get_encoded_message(self, message):
         encoded_message = ""
         for m in message:
@@ -298,23 +305,9 @@ class Huffman_encoding:
         return encoded_message
 
 
-
+    # wrapper of all huffman functions
     def compress(self, message):
-        #filename, file_extension = os.path.splitext(path)
-        #output_path = filename + ".bin"
-
-        # with open(path, 'r+') as file, open(output_path, 'wb') as output:
-        #     message = file.read()
-        #     message = message.rstrip()
-
-        #     freq = self.make_freq_dict(message=message)
-        #     self.build_heap(freq)
-        #     self.merge_nodes()
-        #     self.make_codes()
-
-            # encoded_message = self.get_encoded_message(message)
-
-            # print(encoded_message)
+        
 
         freq = self.make_freq_dict(message=message)
         self.build_heap(freq)

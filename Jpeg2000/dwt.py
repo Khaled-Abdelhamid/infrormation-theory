@@ -139,7 +139,6 @@ def dwt(img,n):
 	for column in range(ll_1.shape[1]):
 		ll_2 [:,column] = downsample(filter(ll_1[:, column], h0)[len(h0)-1:-len(h0)+1])
 	
-	print(ll_2.shape)
 
 
 	img[0:img.shape[0]//2,0:img.shape[1]//2] = ll_2//n[0]
@@ -329,7 +328,6 @@ def idwt(img,n):
 		upsampled = extend_vec(upsampled,-(len(g0)-1))
 		x_1[row,:] = filter(upsampled, g0)[len(g0)-1:-len(g0)+1]
 
-	print(x_1.shape)
 	######################
 
 
@@ -348,7 +346,6 @@ def idwt(img,n):
 		upsampled = extend_vec(upsampled,-(len(g0)-1))
 		x_2[row,:] = filter(upsampled, g0)[len(g0)-1:-len(g0)+1]
 
-	print(x_2.shape)
 
 
 
@@ -370,7 +367,6 @@ def idwt(img,n):
 		upsampled = extend_vec(upsampled, 3)
 		x_3[row,:] = filter(upsampled, g1)[len(g1)-1:-len(g1)+1]
 
-	print(x_3.shape)
 
 
 
@@ -394,7 +390,6 @@ def idwt(img,n):
 		upsampled = extend_vec(upsampled, 3)
 		x_4[row,:] = filter(upsampled, g1)[len(g1)-1:-len(g1)+1]
 
-	print(x_4.shape)
 
 
 
