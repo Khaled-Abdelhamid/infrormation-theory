@@ -8,13 +8,11 @@ def rgb2gray(rgb):
     return np.dot(rgb[...,:3], [0.2989, 0.5870, 0.1140])
 
 def fixdims(img,frows,fcols): # fix the dimensions to make them multiples of the frame size
-  rows,cols,_ =img.shape #get the original rows and colomns and discard the cannal dimension
+  rows,cols=img.shape #get the original rows and colomns and discard the cannal dimension
   rows-=rows%frows
   cols-=cols%fcols
-  img=img[:rows,:cols,:]
+  img=img[:rows,:cols]
   return img
-
-
 
 def getbasis(u,v,brows,bcols):#helper function to get the basis that will be used in DCT
   basis=np.zeros((brows,bcols))
@@ -56,89 +54,78 @@ def dequantize(DCTmat,Q):
 def error(oimg,nimg):
   return np.sum(np.square(np.subtract(oimg,nimg)))
 
-def isValid(i, j,  N):
-   if (i < 0 or i >= N or j >= N or j < 0):
-       return False                            
-   return True
+#########################################################################
+#zigzag transformation
 
-def diagonal(arr,N):
-#This is the code for the function which converts the 2D array to 1D array
-#The idea here is that I considered the first column and the last row as the starting indexes of the diagonals of the 2D array
-#The function is called diagonal and the inputs are the array and its size which is N and the ouput is the 1D arary
-
-  One_D_array = []
-  for k in range(0, N) :
-    flippedd = []
-    if(k%2!=0):                                      # If the index of the coulmn is odd
-      flippedd.append(arr[k][0])
-    else:
-      One_D_array.append(arr[k][0])
-    i=k-1; #setting row index to point to next point in the diagonal
-    j=1;   #setting column index to point to next point in the diagonal
-
-    if(k%2!=0):
-      while (isValid(i, j, N)) :
-        flippedd.append(arr[i][j])
-        i -= 1 #Moving up accross the diagonal by increasing the column index and decreasing the row index
-        j += 1
-    else:
-      while (isValid(i, j,N)) :
-        One_D_array.append(arr[i][j])
-        i -= 1 #Moving up accross the diagonal by increasing the column index and decreasing the row index
-        j += 1
-    flippedd.reverse()
-    for z in range(len(flippedd)):
-        One_D_array.append(flippedd[z])   #Learned that array index should be put between [] not ()
-    del flippedd[:]
-
-  for k2 in range(1,N):
-    flipped2 =[]
-    if(k2 % 2==0):
-      flipped2.append(arr[N-1][k2])
-    else:
-      One_D_array.append(arr[N-1][k2])
-    i = N - 2
-    j = k2 + 1
-
-    if(k%2==0):
-      while (isValid(i, j,N)) :
-        flipped2 = []
-        flipped2.append(arr[i][j])
-        i -= 1 #Moving up accross the diagonal by increasing the column index and decreasing the row index
-        j += 1
-    else:
-      while (isValid(i, j,N)) :
-        One_D_array.append(arr[i][j])
-        i -= 1 #Moving up accross the diagonal by increasing the column index and decreasing the row index
-        j += 1
-    flipped2.reverse()
-    for z in range(len(flipped2)):
-      One_D_array.append(flipped2[z])
-    del flipped2[:]
-  return One_D_array
-
-
-
-
-
-
-def invzig(arr):
-  rows, cols = (int(math.sqrt(len(arr))), int(math.sqrt(len(arr)))) 
-  result = [[0 for i in range(cols)] for j in range(rows)] 
+def takestwoD(arr):
+  arr = np.asarray(arr);
+  m , n = arr.shape
+  result = [0 for i in range(n*m)]
+  result = np.asarray(result);
+  
+  
   count = 0;
-  for i in range(0,2*rows):
+  for i in range(0,n + m):
     if(i%2 == 0):
       x = 0;
       y = 0;
-      if (i<rows):
+      if (i<m):
         x = i;
       else:
-        x = rows - 1;
-      if (i<rows):
+        x = m - 1;
+      if (i<m):
         y = 0;
       else:
-        y = i - rows + 1;
-      while (x >= 0 and y < rows):
+        y = i - m + 1;
+      while (x >= 0 and y < n):
+        result[count] = arr[x][y];
+        count = count +1;
+        x = x - 1;
+        y = y + 1;
+    else:
+      x = 0;
+      y = 0;
+      if (i<n):
+        x = 0;
+      else:
+        x = i - n + 1;
+      if (i<n):
+        y = i;
+      else:
+        y = n - 1;
+      while (x < m and y >= 0):
+        result[count] = arr[x][y];
+        count = count +1;
+        x = x + 1;
+        y = y - 1;
+  return np.asarray(result);
+
+#########################################################################
+#inverse zigzag transformation
+#Generic Code
+#1D to 2D
+def takesoneD(arr,rows,cols):
+  m = rows;
+  n = cols;
+  result = [[0 for i in range(n)] for j in range(m)] 
+  result = np.asarray(result)
+  arr = np.asarray(arr);
+  
+  
+  count = 0;
+  for i in range(0,n + m):
+    if(i%2 == 0):
+      x = 0;
+      y = 0;
+      if (i<m):
+        x = i;
+      else:
+        x = m - 1;
+      if (i<m):
+        y = 0;
+      else:
+        y = i - m + 1;
+      while (x >= 0 and y < n):
         result[x][y] = arr[count];
         count = count +1;
         x = x - 1;
@@ -146,26 +133,22 @@ def invzig(arr):
     else:
       x = 0;
       y = 0;
-      if (i<rows):
+      if (i<n):
         x = 0;
       else:
-        x = i - rows + 1;
-      if (i<rows):
+        x = i - n + 1;
+      if (i<n):
         y = i;
       else:
-        y = rows - 1;
-      while (x < rows and y >= 0):
+        y = n - 1;
+      while (x < m and y >= 0):
         result[x][y] = arr[count];
         count = count +1;
         x = x + 1;
         y = y - 1;
-  return result;
+  return np.asarray(result);
 
-
-
-
-
-########################################
+#########################################################################
 ## run length
 def run_length(st):
 
@@ -175,70 +158,57 @@ def run_length(st):
     
     #print(prob_0//prob_1)
 
-    num_bits = 3
+    st = list(st)
     list_1 = []
     encoded = []
 
     for i in range(len(st)):
         
         if(st[i]!=0):
-            
+    
             length = len(list_1)
             if(length > 0):
-                q, r = divmod(length,2**num_bits - 1)
-
-                for j in range(q):
-                    encoded = encoded + [0] + [1 for j in range(num_bits)]
-
-                if(r != 0):
-                    encoded = encoded + [0] + [0 for j in range(num_bits - len(f'{r:0b}'))] +[int(x) for x in f'{r:0b}']
-    
-
                 list_1 = []
+                encoded.append(0)
+                encoded.append(length)
                 encoded.append(st[i])
             else:
                 encoded.append(st[i])
         else:
             list_1.append(0)
-
+            
     length = len(list_1)
     if(length > 0):
-        q, r = divmod(length,2**num_bits - 1)
-
-        for j in range(q):
-            encoded = encoded + [0] + [1 for j in range(num_bits)]
-
-        if(r != 0):
-            encoded = encoded + [0] + [0 for j in range(num_bits - len(f'{r:0b}'))] +[int(x) for x in f'{r:0b}']
-    
-
         list_1 = []
-
-    
+        encoded.append(0)
+        encoded.append(length)
+    encoded = np.asarray(encoded)
     return encoded
-
-
 
 ########################################
 ## reverse run_length
 
 def reverse_run_length(encoded):
+    encoded  = list(encoded)
     decoded = []
-    flag = 0 # num_of_bits
-    for i in range(len(encoded)):
-        
-        if (flag>0):
-            flag -= 1
-            continue
-
-        elif(encoded[i] == 0):
-            for j in range(encoded[i+1]*4+encoded[i+2]*2+encoded[i+3]*1):
-                decoded.append(0)
-            flag = 3
-
-        elif(encoded[i] != 0):
-            decoded.append(encoded[i])
     
+    flag= 0
+    for i in range(len(encoded)):
+      
+      if (flag ==0):
+        
+        if(encoded[i]!=0):
+          flag =0
+          decoded.append(encoded[i])
+
+        elif(encoded[i]==0):
+          for j in range(encoded[i+1]):
+            decoded.append(0)
+          flag = 1
+          continue
+      
+      flag = 0
+          
     return decoded
 
 
@@ -352,6 +322,7 @@ class Huffman_encoding:
         self.make_codes()
         encoded_message = self.get_encoded_message(message)
         
+        
 
         print("Compressed")
         return encoded_message    
@@ -369,123 +340,54 @@ class Huffman_encoding:
                 current_code = ""
 
         return decoded_text
-
-
-
-
-
-
-
-################
-#######################################################################
-
-import numpy as np
-
-def TwoDoneD(arr):
-  One_D_array = [];
-  N = len(arr[0]);
-  arr = np.asarray(arr);
-  def isValid(i, j,  N):
-   if (i < 0 or i >= N or j >= N or j < 0): 
-       return False                             # Learned that true and false have to start with capitals
-   return True
-  for k in range(0, N) :
-    flippedd = [];
-    if(k%2!=0):                                      # If the index of the coulmn is odd 
-      flippedd.append(arr[k][0])
-    else:
-      One_D_array.append(arr[k][0])
-    i=k-1; #setting row index to point to next point in the diagonal
-    j=1;   #setting column index to point to next point in the diagonal
-   
-    if(k%2!=0):
-      while (isValid(i, j, N)) : 
-        flippedd.append(arr[i][j])
-        i -= 1 #Moving up accross the diagonal by increasing the column index and decreasing the row index
-        j += 1
-    else:
-      while (isValid(i, j,N)) : 
-        One_D_array.append(arr[i][j])
-        i -= 1 #Moving up accross the diagonal by increasing the column index and decreasing the row index
-        j += 1
-    flippedd.reverse()
-    for z in range(len(flippedd)):
-        One_D_array.append(flippedd[z])   #Learned that array index should be put between [] not ()
-    del flippedd[:]
+      ###################################################################3
+      #Encoding function
+def encode(gray,frows,fcols,Q):
+    #fix image dimensions to make it multiple of the frame rows and columns
+    rows,cols=gray.shape    
+    gray=fixdims(gray,frows,fcols) 
     
-  for k2 in range(1,N):
-    flipped2 = [];
-    if(k2 % 2==0):
-      flipped2.append(arr[N-1][k2])
-    else:
-      One_D_array.append(arr[N-1][k2])
-    i = N - 2;
-    j = k2 + 1;
-    
-    if(k%2==0):
-      while (isValid(i, j,N)) :
-        flipped2 = [];
-        flipped2.append(arr[i][j])
-        i -= 1 #Moving up accross the diagonal by increasing the column index and decreasing the row index
-        j += 1
-    else:
-      while (isValid(i, j,N)) :
-        One_D_array.append(arr[i][j])
-        i -= 1 #Moving up accross the diagonal by increasing the column index and decreasing the row index
-        j += 1
-    flipped2.reverse()
-    for z in range(len(flipped2)):
-      One_D_array.append(flipped2[z])
-    del flipped2[:]
-  return np.asarray(One_D_array)
-  
+    #get the original size of the ppicture by multiplying its number of elemnts * the size of each item in bits 
+    osize=gray.size * gray.itemsize 
+
+
+    finalvec=[] # this is the vector that should hold all the runlength of every frame
+    for r in range(int(rows/frows)):
+        for c in range(int(cols/fcols)):
+            frame=gray[r*frows:(r+1)*frows,c*fcols:(c+1)*fcols]#crop every frame in the picture according to the frame size and the indecies of the loop
+            DCTmat=DCT(frame) #it turned out that the frame of size 8 gets the least error when implementing DCT,the 4 and 16 stil get a relatively low error 
+            quantize(DCTmat,Q)
+            DCTmat1D = takestwoD(DCTmat) #transform the DCT matrix into 1D to perfom runclength code
+            encoded = run_length (DCTmat1D) # perform run-length code
+            finalvec.extend(encoded) # concatenate every frame with the previous ones
+
+    finalvec=np.asarray(finalvec)
+    huffman = Huffman_encoding()
+    encoded_img = huffman.compress(finalvec)  #encoded message as a sting of zeros and ones
+    csize=len(encoded_img) #get the size (number of bits) of the generated code
+    print("compression efficiency is ",csize/osize)
+    return encoded_img,huffman # it passes the encoded image and the huffman object
+###################################################################3
+#Decoding function
+def decode(encoded_img,huffman,rows,cols,frows,fcols,Q):
+    recimage=np.ones((rows,cols))# intialize recovered image
+    decoded = huffman.decode_text(encoded_img)
+    decoded=reverse_run_length(decoded)# expand the runlength code
+
+    for r in range(int(rows/frows)):
+        for c in range(int(cols/fcols)):
+            DCTmat1D=decoded[0:frows*fcols]#get the all of the frame elements and pop it from the list
+            del decoded[0:frows*fcols]
+            DCTmat=takesoneD(DCTmat1D,frows,fcols) #convert it to 2D array again
+            dequantize(DCTmat,Q)
+            frame=IDCT(np.asarray(DCTmat))
+            recimage[r*frows:(r+1)*frows,c*fcols:(c+1)*fcols]=frame #put each frame in its proper place
+    return recimage
 
 
 
 
 
-
-import math
-def oneD2twoD(arr):
-  rows, cols = (int(math.sqrt(len(arr))), int(math.sqrt(len(arr)))) 
-  result = [[0 for i in range(cols)] for j in range(rows)] 
-  result = np.asarray(result)
-  count = 0;
-  for i in range(0,2*rows):
-    if(i%2 == 0):
-      x = 0;
-      y = 0;
-      if (i<rows):
-        x = i;
-      else:
-        x = rows - 1;
-      if (i<rows):
-        y = 0;
-      else:
-        y = i - rows + 1;
-      while (x >= 0 and y < rows):
-        result[x][y] = arr[count];
-        count = count +1;
-        x = x - 1;
-        y = y + 1;
-    else:
-      x = 0;
-      y = 0;
-      if (i<rows):
-        x = 0;
-      else:
-        x = i - rows + 1;
-      if (i<rows):
-        y = i;
-      else:
-        y = rows - 1;
-      while (x < rows and y >= 0):
-        result[x][y] = arr[count];
-        count = count +1;
-        x = x + 1;
-        y = y - 1;
-  return result;
-  
 
 
 
