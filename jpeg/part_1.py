@@ -57,12 +57,12 @@ Q4_2=[[16,16,32,64],
 
 # do the same qunatization level in 8y 8 but repeat every element twice
 
-Q16_1 = np.repeat(np.repeat(Q1, 2, axis=0), 2, axis=1)
+Q16_1 = np.repeat(np.repeat(Q8_1, 2, axis=0), 2, axis=1)
 
-Q16_2 = np.repeat(np.repeat(Q2, 2, axis=0), 2, axis=1)
+Q16_2 = np.repeat(np.repeat(Q8_2, 2, axis=0), 2, axis=1)
 
-frows,fcols = 16,16 #choose the frame size
-Q=Q16_2     #choose quantization matrix
+frows,fcols = 4,4 #choose the frame size
+Q=Q1_2     #choose quantization matrix
 
 code,huffman = encode(gray,frows,fcols,Q) # return the encoded image
 recovered= decode(code,huffman,rows,cols,frows,fcols,Q)
