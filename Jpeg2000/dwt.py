@@ -6,12 +6,18 @@ import numpy as np
 from helpers import *
 
 
+
+# converts rgb to gray
 def rgb2gray(rgb):
     return np.dot(rgb[...,:3], [0.2989, 0.5870, 0.1140])
 
 
+
+# reading # img_3 
 img = plt.imread('img_3.jpg')
 img = rgb2gray(img)
+
+# taking the first 400x400 pixels
 img = img[:400,:400]
 
 # img = np.ones((64,64))*127
@@ -21,15 +27,20 @@ img = img[:400,:400]
 # plt.imshow(img, cmap=plt.get_cmap('gray'), vmin=0, vmax=1)
 
 
+# takes a vector and a filter and do normal convolution
 def filter(vec,f):
 	newvec = np.convolve(vec, f)
 	return newvec 
 
+
+# down samples the vector to half
 def downsample(vec):
 	vec=vec[::2]
 	return vec
 
 
+
+# upsamples by interpolating 0's
 def upsample(vec):
     length = len(vec)
     newvec = np.zeros((2*length))
@@ -43,6 +54,11 @@ def upsample(vec):
 
 
 import numpy as np
+
+
+
+# takes a vector and a value positive if append at the end and negative if at the beginning
+# and then flips the abs(value) pixels to pad the vector
 def extend_vec(vec,extension_value):
     vec = list(vec)
     if(extension_value<0):
@@ -69,8 +85,12 @@ ll = []
 #discrete wavelet transform
 
 
+# takes an image and an array n that represents the quantization values
+
 def dwt(img,n):
 
+
+	#taking a copy of the img
 	copy_img = np.copy(img)
 
 
@@ -84,6 +104,16 @@ def dwt(img,n):
 	
 
 	######################
+	# here I do filtering either low or high on the x axis then on the y axis
+	# with the extension for correct convolution and then downsample
+	# I repeat this for 4 times
+	# then assign the final output in ll_2, lh_2, hl_2, and hh_2  ( those are the 4 block each assigned in its place)
+
+	#     ll   lh
+	#     hl   hh   
+
+	# copy img and copy_img_2 are  just helper matrcies to easily downsample and operate on the data
+	 
 	copy_img = np.zeros((img.shape[0], img.shape[1]+len(h0)-1))
 	for i in range(copy_img.shape[0]):
 		vec = extend_vec(img[i,:],-(len(h0)-1)//2)
@@ -238,6 +268,11 @@ two_d = takesoneD(run_length_decoded, img.shape[0], img.shape[1])
 ############################################################################
 # inverse discrete wavelet transform
 
+
+# here is the inverse dwt
+
+# almost the same operations but reversed
+
 def idwt(img,n):
 
 
@@ -248,24 +283,14 @@ def idwt(img,n):
 	rows , columns = img.shape		
 
 
-	######################
-	# copy_img = np.zeros((img.shape[0], img.shape[1]+len(g0)-1))
-	# copy_img_2 = np.zeros(img.shape[0], img.shape[1])
+	#creating 2 helper arrays to manipulate the input 
+	# then do the operation 4 times
 
-	# for i in range(copy_img.shape[1]):
-	# 	vec = extend_vec(img[:,i],-(len(h0)-1)//2)
-	# 	vec = extend_vec(vec,(len(h0)-1)//2)
-	# 	copy_img[:,i] = vec
+	# x_1 is what is retreived from ll block
+	# x_2 is what is retreived from lh block
+	# x_3 is what is retreived from hl block
+	# x_4 is what is retreived from hh block
 
-	# copy_img_2 = np.zeros((copy_img.shape[0]+len(h0)-1, copy_img.shape[1]))
-	# for i in range(copy_img_2.shape[1]):
-	# 	vec = extend_vec(copy_img[:,i],-(len(h0)-1)//2)
-	# 	vec = extend_vec(vec,(len(h0)-1)//2)
-	# 	copy_img_2[:,i] = vec
-
-	# ll_1 = np.zeros((copy_img_2.shape[0], img.shape[1]//2))
-	# ll_2 = np.zeros((img.shape[0]//2, ll_1.shape[1]))
-	
 
 
 	x1 = np.zeros((img.shape[0],img.shape[1]//2))
