@@ -14,25 +14,27 @@ def fixdims(img,frows,fcols): # fix the dimensions to make them multiples of the
   img=img[:rows,:cols]
   return img
 
-def getbasis(u,v,brows,bcols):#helper function to get the basis that will be used in DCT
-  basis=np.zeros((brows,bcols))
-  for i in range(brows):
-    for j in range(bcols):
-      basis[i,j]=np.cos((2*i+1)*u*np.pi/16)*np.cos((2*j+1)*v*np.pi/16)
+def getbasis(u,v,frows,fcols):#helper function to get the basis that will be used in DCT
+  basis=np.zeros((frows,fcols))
+  for i in range(frows):
+    for j in range(fcols):
+      basis[i,j]=np.cos((2*i+1)*u*np.pi/(2*frows))*np.cos((2*j+1)*v*np.pi/(2*frows))
   return basis
 
 def DCT(frame):
   frows,fcols=frame.shape
   DCTmat=np.zeros((frows,fcols))
+  
   for u in range(frows):
     for v in range(fcols):
       basis=getbasis(u,v,frows,fcols)
       DCTmat[u,v]=np.sum(np.multiply(basis,frame))#the correlation operation
   #scaling operations to remove energy at the first rows
-  DCTmat[0,:]/=32
-  DCTmat[:,0]/=32
-  DCTmat[0,0]*=16
-  DCTmat[1:,1:]/=16
+  
+  b=frame.shape[0]
+  DCTmat[0,:]/=2
+  DCTmat[:,0]/=2
+  DCTmat/=b**2/4
   return DCTmat
 
 def IDCT(DCTmat):#the function multipy each basis with the corresponding scale and adds them up
@@ -47,9 +49,11 @@ def IDCT(DCTmat):#the function multipy each basis with the corresponding scale a
 def quantize(DCTmat,Q):
   DCTmat=np.divide(DCTmat,Q)
   DCTmat=np.round(DCTmat)
+  return DCTmat
 
 def dequantize(DCTmat,Q):
   DCTmat=np.multiply(DCTmat,Q)
+  return DCTmat
 
 def error(oimg,nimg):
   return np.sum(np.square(np.subtract(oimg,nimg)))
@@ -356,7 +360,7 @@ def encode(gray,frows,fcols,Q):
         for c in range(int(cols/fcols)):
             frame=gray[r*frows:(r+1)*frows,c*fcols:(c+1)*fcols]#crop every frame in the picture according to the frame size and the indecies of the loop
             DCTmat=DCT(frame) #it turned out that the frame of size 8 gets the least error when implementing DCT,the 4 and 16 stil get a relatively low error 
-            quantize(DCTmat,Q)
+            DCTmat=quantize(DCTmat,Q)
             DCTmat1D = takestwoD(DCTmat) #transform the DCT matrix into 1D to perfom runclength code
             encoded = run_length (DCTmat1D) # perform run-length code
             finalvec.extend(encoded) # concatenate every frame with the previous ones
@@ -365,7 +369,7 @@ def encode(gray,frows,fcols,Q):
     huffman = Huffman_encoding()
     encoded_img = huffman.compress(finalvec)  #encoded message as a sting of zeros and ones
     csize=len(encoded_img) #get the size (number of bits) of the generated code
-    print("compression efficiency is ",100*csize/osize,"%")
+    print("compression ratio is ",100*csize/osize,"%")
     return encoded_img,huffman # it passes the encoded image and the huffman object
 ###################################################################3
 #Decoding function
@@ -379,7 +383,7 @@ def decode(encoded_img,huffman,rows,cols,frows,fcols,Q):
             DCTmat1D=decoded[0:frows*fcols]#get the all of the frame elements and pop it from the list
             del decoded[0:frows*fcols]
             DCTmat=takesoneD(DCTmat1D,frows,fcols) #convert it to 2D array again
-            dequantize(DCTmat,Q)
+            DCTmat=dequantize(DCTmat,Q)
             frame=IDCT(np.asarray(DCTmat))
             recimage[r*frows:(r+1)*frows,c*fcols:(c+1)*fcols]=frame #put each frame in its proper place
     return recimage
