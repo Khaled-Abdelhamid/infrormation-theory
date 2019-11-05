@@ -340,6 +340,49 @@ class Huffman_encoding:
                 current_code = ""
 
         return decoded_text
+      ###################################################################3
+      #Encoding function
+def encode(gray,frows,fcols,Q):
+    #fix image dimensions to make it multiple of the frame rows and columns
+    rows,cols=gray.shape    
+    gray=fixdims(gray,frows,fcols) 
+    
+    #get the original size of the ppicture by multiplying its number of elemnts * the size of each item in bits 
+    osize=gray.size * gray.itemsize 
+
+
+    finalvec=[] # this is the vector that should hold all the runlength of every frame
+    for r in range(int(rows/frows)):
+        for c in range(int(cols/fcols)):
+            frame=gray[r*frows:(r+1)*frows,c*fcols:(c+1)*fcols]#crop every frame in the picture according to the frame size and the indecies of the loop
+            DCTmat=DCT(frame) #it turned out that the frame of size 8 gets the least error when implementing DCT,the 4 and 16 stil get a relatively low error 
+            quantize(DCTmat,Q)
+            DCTmat1D = takestwoD(DCTmat) #transform the DCT matrix into 1D to perfom runclength code
+            encoded = run_length (DCTmat1D) # perform run-length code
+            finalvec.extend(encoded) # concatenate every frame with the previous ones
+
+    finalvec=np.asarray(finalvec)
+    huffman = Huffman_encoding()
+    encoded_img = huffman.compress(finalvec)  #encoded message as a sting of zeros and ones
+    csize=len(encoded_img) #get the size (number of bits) of the generated code
+    print("compression efficiency is ",csize/osize)
+    return encoded_img,huffman # it passes the encoded image and the huffman object
+###################################################################3
+#Decoding function
+def decode(encoded_img,huffman,rows,cols,frows,fcols,Q):
+    recimage=np.ones((rows,cols))# intialize recovered image
+    decoded = huffman.decode_text(encoded_img)
+    decoded=reverse_run_length(decoded)# expand the runlength code
+
+    for r in range(int(rows/frows)):
+        for c in range(int(cols/fcols)):
+            DCTmat1D=decoded[0:frows*fcols]#get the all of the frame elements and pop it from the list
+            del decoded[0:frows*fcols]
+            DCTmat=takesoneD(DCTmat1D,frows,fcols) #convert it to 2D array again
+            dequantize(DCTmat,Q)
+            frame=IDCT(np.asarray(DCTmat))
+            recimage[r*frows:(r+1)*frows,c*fcols:(c+1)*fcols]=frame #put each frame in its proper place
+    return recimage
 
 
 

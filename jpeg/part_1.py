@@ -3,21 +3,17 @@ import matplotlib.pyplot as plt
 from PIL import Image
 import numpy as np
 
-# call the image and convert it into gray scale
+# # call the image and convert it into gray scale bitmap
 # oimage = Image.open("img.bmp").convert('LA')
 # oimage.save('gimg.png')
 
 gim = plt.imread('gimg.png')
 gray = rgb2gray(gim)*255
-# np.savetxt("foo.csv", gray, delimiter=",")
-
-plt.imshow(gray, cmap=plt.get_cmap('gray'), vmin=0, vmax=1)
-frows,fcols=8,8 #intialize the frame size
 rows,cols=gray.shape
-gray.shape
-gray=fixdims(gray,frows,fcols) #fix image dimensions to make it multiple of the frame rows and columns
-osize=gray.size * gray.itemsize
-print(osize)
+
+plt.imshow(gray, cmap=plt.get_cmap('gray'), vmin=0, vmax=255)
+
+
 # quantiation tables
 Q0=[[1,1,1,1,1,1,1,1],
     [1,1,1,1,1,1,1,1],
@@ -27,7 +23,6 @@ Q0=[[1,1,1,1,1,1,1,1],
     [1,1,1,1,1,1,1,1],
     [1,1,1,1,1,1,1,1],
     [1,1,1,1,1,1,1,1]]
-
 Q1=[[1,1,1,1,1,2,2,4],
     [1,1,1,1,1,2,2,4],
     [1,1,1,1,2,2,2,4],
@@ -36,7 +31,6 @@ Q1=[[1,1,1,1,1,2,2,4],
     [2,2,2,2,2,4,8,8],
     [2,2,2,4,4,8,8,16],
     [4,4,4,4,8,8,16,16]]
-
 Q2=[[1,2,4,8,16,32,64,128],
     [2,4,4,8,16,32,64,128],
     [4,4,8,16,32,64,128,128],
@@ -45,8 +39,7 @@ Q2=[[1,2,4,8,16,32,64,128],
     [32,32,64,128,128,256,256,256],
     [64,64,128,128,256,256,256,256],
     [128,128,128,256,256,256,256,256]]
-
-Q3 = [
+Q3= [
     [17,18,24,47,99,99,99,99],
     [18,21,26,66,99,99,99,99],
     [24,26,56,99,99,99,99,99],
@@ -86,44 +79,9 @@ Q6= [
     [72,92,95,98,112,100,103,99]
     ]
 
-# def encode(frows,fcols,Q,gray):
-Q=Q0
-# frame1D=np.zeros(frows*fcols)
-finalvec=[]
-print(gray.shape)
-for r in range(int(rows/frows)):
-    for c in range(int(cols/fcols)):
-        frame=gray[r*frows:(r+1)*frows,c*fcols:(c+1)*fcols]
-        DCTmat=DCT(frame) #it turned out that the frame of size 8 gets the least error when implementing DCT,the 4 and 16 stil get a relatively low error 
-        # quantize(DCTmat,Q)
-        frame1D=takestwoD(DCTmat)
-        encoded=run_length(frame1D)
-        finalvec.extend(encoded)
-
-finalvec=np.asarray(finalvec)
-finalvec.shape
-huffman = Huffman_encoding()
-encoded_img = huffman.compress(finalvec)  #encoded message as a sting of zeros and ones
-csize=len(encoded_img)
-print("compression efficiency is ",csize/osize)
-
-recimage=np.ones((rows,cols))# intialize recovered image
-decoded = huffman.decode_text(encoded_img)
-decoded=reverse_run_length(decoded)# expand the runlength code
-
-for r in range(int(rows/frows)):
-    for c in range(int(cols/fcols)):
-        DCTmat1D=decoded[0:frows*fcols]
-        del decoded[0:frows*fcols]
-        DCTmat=takesoneD(DCTmat1D,frows,fcols)
-        # dequantize(DCTmat,Q)
-        frame=IDCT(np.asarray(DCTmat))
-        recimage[r*frows:(r+1)*frows,c*fcols:(c+1)*fcols]=frame
-plt.imshow(recimage, cmap=plt.get_cmap('gray'), vmin=0, vmax=255)
-
-# arrrrr=np.random.rand(8,8)
-# DCTmattt=DCT(arrrrr)
-# print(DCTmattt)
-# ffff=IDCT(DCTmattt)
-# print(ffff-arrrrr)
-gray
+frows,fcols = 8, 8 #choose the frame size
+Q=Q1 #choose quantization matrix
+code,huffman = encode(gray,frows,fcols,Q) # return the encoded image
+recovered= decode(code,huffman,rows,cols,frows,fcols,Q)
+plt.imshow(recovered, cmap=plt.get_cmap('gray'), vmin=0, vmax=255)
+print(100*error(gray,recovered)/np.sum(np.square(gray)))
