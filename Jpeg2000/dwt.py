@@ -243,23 +243,44 @@ img[0:img.shape[0]//4,0:img.shape[1]//4] = dwt(img[0:img.shape[0]//4,0:img.shape
 
 
 ###########################################################
+
+
+# 2d to 1d
 one_d = takestwoD(img)
+
+# run length
 run_length_encoded = run_length(one_d)
+
+
+# huffman encoding 
 huffman  = Huffman_encoding()
 huffman_encoded = huffman.compress(run_length_encoded)
-from sys import getsizeof
-print(getsizeof(one_d))
-print(len(run_length_encoded))
-print(len(huffman_encoded))
-import pickle
-output_file = open("compressed_img_1.bin", "wb")
-pickle.dump(huffman_encoded, output_file)
 
+
+from sys import getsizeof
+
+# getting the size of raw image
+print("size of image in bits:")
+print(getsizeof(one_d))
+print("\n\n")
+
+# print(len(run_length_encoded))
+
+
+
+
+#####
+# doing decoding
+
+# size of compressed image
+print("size of compressed in bits:")
+print(len(huffman_encoded))
+print("\n\n")
 huffman_decoded = huffman.decode_text(huffman_encoded)
 run_length_decoded = reverse_run_length(run_length_encoded)
 
-two_d = takesoneD(run_length_decoded, img.shape[0], img.shape[1])
 
+two_d = takesoneD(run_length_decoded, img.shape[0], img.shape[1])
 
 
 
