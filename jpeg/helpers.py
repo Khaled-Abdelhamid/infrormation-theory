@@ -365,7 +365,7 @@ def encode(gray,frows,fcols,Q):
     huffman = Huffman_encoding()
     encoded_img = huffman.compress(finalvec)  #encoded message as a sting of zeros and ones
     csize=len(encoded_img) #get the size (number of bits) of the generated code
-    print("compression efficiency is ",csize/osize)
+    print("compression efficiency is ",100*csize/osize,"%")
     return encoded_img,huffman # it passes the encoded image and the huffman object
 ###################################################################3
 #Decoding function

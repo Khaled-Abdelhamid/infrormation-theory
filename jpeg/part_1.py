@@ -3,11 +3,11 @@ import matplotlib.pyplot as plt
 from PIL import Image
 import numpy as np
 
-# # call the image and convert it into gray scale bitmap
-# oimage = Image.open("img.bmp").convert('LA')
-# oimage.save('gimg.png')
+# call the image and convert it into gray scale bitmap
+oimage = Image.open("t1.bmp").convert('LA')
+oimage.save('t1.png')
 
-gim = plt.imread('gimg.png')
+gim = plt.imread('t1.png')
 gray = rgb2gray(gim)*255
 rows,cols=gray.shape
 
@@ -79,9 +79,10 @@ Q6= [
     [72,92,95,98,112,100,103,99]
     ]
 
-frows,fcols = 8, 8 #choose the frame size
-Q=Q1 #choose quantization matrix
+frows,fcols = 8,8 #choose the frame size
+Q=Q2              #choose quantization matrix
+
 code,huffman = encode(gray,frows,fcols,Q) # return the encoded image
 recovered= decode(code,huffman,rows,cols,frows,fcols,Q)
 plt.imshow(recovered, cmap=plt.get_cmap('gray'), vmin=0, vmax=255)
-print(100*error(gray,recovered)/np.sum(np.square(gray)))
+print("the error  the image is : ",100*error(gray,recovered)/np.sum(np.square(gray)),"%")
